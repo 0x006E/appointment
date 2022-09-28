@@ -1,34 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import { ReactComponent as Spinner } from "./assets/spinner.svg";
+import Button from "./Button";
+import Input from "./Input";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [status, setStatus] = useState("idle");
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const encoded = new URLSearchParams(data);
+    setStatus("loading");
+    fetch("http://localhost:3000/", { method: "POST", body: encoded })
+      .then(async (response) => {
+        if (!response.ok) return setStatus("error");
+        return setStatus("success");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setStatus("error");
+      });
+  };
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="mx-auto w-full max-w-[550px] bg-white rounded-md shadow-md">
+      <div className="rounded-md bg-[#F5F7FB] py-4 px-8">
+        {status === "error" &&
+          "Something went wrong on our side. Please try again later"}
+        {status === "success" && "Your appointment has been booked"}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1 className="text-2xl font-bold px-8">Appointment</h1>
+      <form className="py-6 px-9" onSubmit={handleSubmit}>
+        <Input
+          type="text"
+          name="name"
+          placeholder="Enter your name"
+          label="Name"
+        />
+        <Input
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          label="Email"
+        />
+        <Input
+          type="tel"
+          name="phone"
+          placeholder="Enter your phone"
+          label="Phone"
+          pattern="^\+?\d{0,13}"
+        />
+        <Input type="date" name="date" label="Date" />
+        <Button type="submit" disabled={status === "loading"}>
+          {status === "loading" && <Spinner />}Submit
+        </Button>
+      </form>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
